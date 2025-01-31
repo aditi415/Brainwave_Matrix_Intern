@@ -1,2 +1,2 @@
 # Brainwave_Matrix_Intern
-This is my new internship repo
+This application is design using flutter. for storing data, I've used firebase. 

@@ -1,26 +1,33 @@
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:news_reader_app/news_provider.dart';
-import 'package:news_reader_app/home_screen.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'dart:developer';
 
-void main() {
-  runApp(const NewsReaderApp());
-}
+class ApiService {
+  static const String _baseUrl =
+      'https://newsapi.org/v2/top-headlines?category=technology&apiKey=6d8b700039c04ece80d3a16ba7f0c18f';
+  static const String _apiKey = '6d8b700039c04ece80d3a16ba7f0c18f';
 
-class NewsReaderApp extends StatelessWidget {
-  const NewsReaderApp({Key? key}) : super(key: key);
+  Future<List<Article>> fetchNews(String category) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/top-headlines?category=$category&apiKey=$_apiKey'),
+      );
 
-  @override
-  Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => NewsProvider(),
-      child: MaterialApp(
-        title: 'News Reader App',
-        theme: ThemeData.light(),
-        darkTheme: ThemeData.dark(),
-        themeMode: ThemeMode.system,
-        home: const HomeScreen(),
-      ),
-    );
+      log('API Response Status: ${response.statusCode}'); // Updated
+      log('API Response Body: ${response.body}'); // Updated
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return (data['articles'] as List)
+            .map((json) => Article.fromJson(json))
+            .toList();
+      } else {
+        throw Exception(
+            'Failed to load news. Status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      log('Error in fetchNews: $e', level: 1000); // Updated
+      throw Exception('Failed to load news');
+    }
   }
 }
